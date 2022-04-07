@@ -20,6 +20,26 @@ const Home: NextPage = () => {
   }
 
   useEffect(() => {
+    const animateContainer = (show: boolean) => {
+      if(animRef.current){
+        gsap.fromTo(
+          animRef.current,
+          { opacity: animRef.current.style.opacity },
+          {
+            opacity: show ? 1 : 0,
+            duration: .3,
+            onComplete: onComplete,
+            onCompleteParams:[view.next]
+          })
+      }
+    }
+
+    function onComplete(nextView: string) {
+      if(nextView !== 'none'){
+        setView({current: nextView, next: 'none'})
+      }
+    }
+
     switch(view.next){
       case 'none':
         animateContainer(true);
@@ -27,29 +47,9 @@ const Home: NextPage = () => {
       default:
         animateContainer(false);
     }
-  }, [view])
+  }, [view, setView, animRef])
 
-  const animateContainer = (show: boolean) => {
-    if(animRef.current){
-      gsap.fromTo(
-        animRef.current,
-        { opacity: animRef.current.style.opacity },
-        {
-          opacity: show ? 1 : 0,
-          duration: .3,
-          onComplete: onComplete,
-          onCompleteParams:[view.next]
-        })
-    }
-  }
-
-  function onComplete(nextView: string) {
-    if(nextView !== 'none'){
-      setView({current: nextView, next: 'none'})
-    }
-  }
-
-  return (
+ return (
     <div className='app-container'>
       <div className='maincontent-container'>
         <div ref={animRef} className='animation-container'>

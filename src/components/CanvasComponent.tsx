@@ -5,7 +5,7 @@ import { PerspectiveCamera } from '@react-three/drei'
 import gsap from 'gsap'
 import { TestMaterial } from './Material'
 import { useStore } from "../store";
-// import { OrbitControls, Text } from '@react-three/drei'
+import { OrbitControls, Text } from '@react-three/drei'
 
 extend({ TestMaterial })
 
@@ -20,6 +20,8 @@ declare global {
 interface BoxProps {
   materialRef: MutableRefObject<THREE.ShaderMaterial | null>
   cameraRef: MutableRefObject<THREE.PerspectiveCamera | null>
+  position: number[]
+  size: number[]
 }
 
 
@@ -30,39 +32,27 @@ const CanvasComponent = ():JSX.Element => {
 
   return <div className='canvas-container'>
             <Canvas>
+              <OrbitControls/>
               <color attach='background' args={["white"]}/>
               <PerspectiveCamera
                 makeDefault
-                position={[0, 0, 300]}
+                position={[0, 0, 10]}
                 fov={50}
                 aspect={window.innerWidth / window.innerHeight}
                 near={1}
                 far={500}
                 ref={cameraRef}
-              />
-              <Cube materialRef={materialRef} cameraRef={cameraRef}/>
+              />              
+              <Cube materialRef={materialRef} cameraRef={cameraRef} position={[-1.6, -1.25, 0.0]} size={[1.5, 2.5, 1, 1]}/>
+              <Cube materialRef={materialRef} cameraRef={cameraRef} position={[0.0, 0.0, 0.0]} size={[1.5, 5, 1, 1]}/>
+              <Cube materialRef={materialRef} cameraRef={cameraRef} position={[1.6, 1.25, 0]} size={[1.5, 2.5, 1, 1]}/>
             </Canvas>
         </div>
 }
 
-const Cube = ({materialRef, cameraRef} : BoxProps) => {
+const Cube = ({materialRef, cameraRef, position, size} : BoxProps) => {
 
   const navRef = useStore(state => state.navRef)
-
-  // const updatePlaneDimensions = () => {
-  //   if(cameraRef.current){
-  //     const aspect = cameraRef.current.aspect
-  //     var vFOV = THREE.MathUtils.degToRad( cameraRef.current.fov ); // convert vertical fov to radians
-  //     var height = 2 * Math.tan( vFOV / 2 ) * cameraRef.current.position.z; // visible height
-  //     var width = height * cameraRef.current.aspect;           // visible width
-  //     const diff = width - height;
-
-  //     if (diff > 100 ){
-  //       height += diff / 5.5;
-  //     }
-  //     setViewSize(prev => {return {width: width, height: height}})
-  //   }
-  // };
 
   useFrame(({clock, mouse, size, camera}) => {
     
@@ -124,8 +114,8 @@ const Cube = ({materialRef, cameraRef} : BoxProps) => {
   //   }
   // }
 
-  return (<mesh onPointerMove={pointerMove}>
-    <planeBufferGeometry attach='geometry' args={[ 5, 5, 1, 1]}/>
+  return (<mesh onPointerMove={pointerMove} position={new THREE.Vector3(position[0], position[1], position[2])}>
+    <boxBufferGeometry attach='geometry' args={[size[0], size[1], size[2], size[3]]}/>
     <testMaterial
       ref={materialRef}
     />
