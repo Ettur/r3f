@@ -1,0 +1,147 @@
+import React, { useEffect, useMemo, useRef, useState } from "react"
+import { Canvas, context, useFrame, useStore, extend } from '@react-three/fiber'
+import { PerspectiveCamera, Sphere, shaderMaterial, OrbitControls, PointMaterial } from '@react-three/drei'
+import { Lights } from './Lights'
+import glsl from 'glslify'
+import * as THREE from 'three'
+
+export const Animation = () => {
+  const ref = useRef()
+  const tempCanvas = useRef()
+  const [img, setImg] = useState(false)
+  const [sizes, setSizes] = useState(false)
+  const [pixelData, setPixelData] = useState(false)
+  const [positions, setPositions] =useState(false)
+  const [colors, setColors] = useState(false)
+
+
+  useEffect(() => {
+    const contex = tempCanvas.current.getContext('2d')
+    if(!img){
+      const image = new Image()
+      image.src = '/66.jpg'
+      image.onload = function () {
+        contex.drawImage(image,0, 0, 200, 200)
+        const t = contex.getImageData(0, 0, 200, 200)
+        setImg(t)
+        // setSizes({width: 200, height: 200})
+      }
+    }
+
+    if(img && !pixelData){
+      console.log(img.data.length)
+      const pixels = []
+      const pos = []
+      const col = []
+      for(let i =0; i<img.data.length; i+=4)
+      {
+        if(img.data[i] > 34) {
+          // pixels.push({
+          //   x: i/4 % 200,
+          //   y: Math.floor((i/4) / 200),
+          //   z: 0,
+          //   color: img.data[i]
+          // })
+          pos.push((i/4 % 200))
+          pos.push(Math.floor((i/4) / 200))
+          pos.push(0)
+          col.push(img.data[i])
+        }
+      }
+      setPixelData(pixels)
+      setColors(col)
+      setPositions(pos)
+    }
+
+
+    console.log(positions, colors)
+  }, [img, pixelData, positions, colors])
+
+
+
+
+  return <div className="webgl-canvas">
+    <Canvas>
+      <OrbitControls/>
+      <Lights/>
+      <PerspectiveCamera makeDefault position={[0, 0, 14]}/>
+      <Picture positions={positions} colors={colors}/>
+      <mesh>
+        <boxGeometry/>
+        <particleMaterial/>
+      </mesh>
+      <AnimateFrame object={ref}/>
+    </Canvas>
+    <div>
+      <canvas ref={tempCanvas} width={400} height={400} style={{visibility: 'hidden'}}/>
+    </div>
+
+</div>
+}
+
+const ParticleMaterial = shaderMaterial(
+  {
+    uColor: new THREE.Color(1.0, 0.0, 0.0),
+    uTime : 0
+  },
+  glsl`
+    varying vec2 vUv;
+
+    void main(){
+      vUv = uv;
+      gl_PointSize = 5.0;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  glsl`
+    precision mediump float;
+
+    uniform vec3 uColor;
+    uniform float uTime;
+
+    varying vec2 vUv;
+
+    void main() {
+      gl_FragColor = vec4(sin(vUv.x + uTime) * uColor, 1.0);
+    }
+  `,
+)
+
+extend({ParticleMaterial})
+
+const Picture = (props) => {
+
+  const [coords] = useMemo(() => {
+
+    const coords = new Float32Array(props.positions)
+    return [coords]
+  }, [props])
+
+
+
+  const ref = useRef()
+  useFrame(({clock}) => (ref.current.uTime = clock.getElapsedTime()))
+
+  return  <points position={[0, 0, 0]}>
+    < bufferGeometry attach='geometry'>
+      <bufferAttribute
+        attachObject={["attributes", "position"]}
+        count={coords.length/3}
+        array={coords}
+        itemSize={4}
+      />
+    </bufferGeometry>
+    <particleMaterial ref={ref} />
+  </points>
+}
+
+
+const AnimateFrame = (props) => {
+  useFrame((state) => {
+    if(props.object.current) {
+      props.object.current.rotation.y += 0.008
+    }
+  })
+  return null
+}
+
