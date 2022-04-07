@@ -1,6 +1,4 @@
 import type { NextPage } from 'next'
-import { Navigation } from '../src/components/Navigation'
-import { Login } from '../src/components/Login'
 import dynamic from 'next/dynamic'
 import { useStore } from '../src/store'
 import { useEffect } from 'react'
@@ -11,7 +9,6 @@ const CanvasComponent = dynamic(() => import('../src/components/CanvasComponent'
 const Home: NextPage = () => {
 
   const animRef = useStore(state => state.animRef);
-  const navRef = useStore(state => state.navRef);
   const view = useStore(state => state.view);
   const setView = useStore(state => state.setView);
 
@@ -19,8 +16,6 @@ const Home: NextPage = () => {
     switch(view.current){
       case 'landing':
         return <CanvasComponent/>
-      case 'login':
-        return <Login/>
     }
   }
 
@@ -56,7 +51,6 @@ const Home: NextPage = () => {
 
   return (
     <div className='app-container'>
-      <Navigation/>
       <div className='maincontent-container'>
         <div ref={animRef} className='animation-container'>
           {displayContent()}

@@ -174,15 +174,11 @@ void main() {
 
   vec4 img1 = texture2D(uTextureOne, uvDisplacedOne);
   vec4 img2 = texture2D(uTextureTwo, uvDisplacedTwo);
-
   vec4 finalImg = mix(img1, img2, uProgress);
 
   finalImg = mix(img1, img2, uProgress);
   vec3 grayscale = vec3(.5);
   vec4 gray =  vec4(vec3(dot(finalImg.rgb, grayscale)), finalImg.a);
-
-
-
 	gl_FragColor = gray;
 }
 `
